@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멍청한 유도탄 피하기</title>
+    <style>
+        canvas{
+            border: 2px black solid;
+        }
+
+        @font-face {
+            font-family: 'a';
+            src: url("/a.ttf");
+        }
+    </style>
+</head>
+<body onkeypress="keypress();">
+    <audio id="over" preload="auto" src="/Gameover.mp3"></audio>
+    <h3>멍청한 유도탄 피하기!!</h3><p></p>
+    w , a , s , d키로 이동합니다. Space키를 눌러 다음 스테이지로 가거나 다시 시작을 합니다.<p></p>
+    <canvas id="can" width="1220px" height="620px"></canvas>
+
+    <script>
+        const colors = ["red",  "orange" , "yellow" , "green" , "blue" , "black"];
+        const canvasE = document.getElementById("can");
+        const ctx = canvasE.getContext("2d");
+        const width = canvasE.width;
+        const height = canvasE.height;
+        const nanugi = width / 2 - width / 4 + width / 8 - width / 16 + width / 32 - width / 64 + width / 128;
+
+        let i = 0;
+        let posX = 100;
+        let posY = 100;
+        let speed = 10;
+        let addPlayer = 10;
+        let Start = true;
+        let stage = 1;
+        let guns = Array();
+        let Time = 7;
+        let Cleared = false;
+        var audio = document.getElementById("over");
+        audio.load()
+
+        function getRandomInt(min, max) { 
+            return Math.floor(Math.random() * (max - min + 1)) + min; 
+        }
+
+        class Gun{
+            constructor(Espeed , X , Y , no){
+                this.speed = Espeed;
+                this.X = X;
+                this.Y = Y;
+                this.no = no;
+                this.color = "#" + Math.floor(Math.random()*16777215).toString(16);
+
+                this.fX=  X;
+                this.fY = Y;
+            }
+
+            restart(){
+                this.X = this.fX;
+                this.Y = this.fY;
+            }
+
+            cheekGameOver(){
+                console.log("E" + this.no + " : " , this.X , this.Y);
+                if(posX <= this.X && posX + 45 >= this.X){ // x
+                    if(posY <= this.Y && posY + 45 >= this.Y){ // y
+                        Start = false;
+                        ctx.clearRect(0 , 0 , width , height);
+                        ctx.font = "70px rnalgun gothic";
+                        ctx.strokeText("Gameover!" , nanugi , 200);
+                        ctx.font = "30px rnalgun gothic";
+                        ctx.strokeText("Press space to restart" , nanugi , 270);
+                        guns.forEach(GunElement => {
+                            GunElement.restart();
+                        });
+
+                        setTimeout(draw_gameover , 10);
+                    }
+                }
+            }
+
+            drawEnime(){
+                if(posX + 40 < this.X){
+                    this.X -= speed;
+                }else{
+                    this.X += speed;
+                }
+
+                if(posY + 40 < this.Y){
+                    this.Y -= speed;
+                }else{
+                    this.Y += speed;
+                }
+
+                this.X += getRandomInt(-1 * speed , speed);
+                this.Y += getRandomInt(-1 * speed , speed);
+
+                ctx.lineWidth = 5;
+                ctx.lineCap ="round";
+                ctx.beginPath();
+                ctx.strokeStyle = this.color;
+                ctx.moveTo(this.X , this.Y);
+                ctx.lineTo(10+this.X , this.Y);
+                ctx.lineTo(10+this.X , 20+this.Y);
+                ctx.lineTo(this.X , 20 + this.Y);
+                ctx.lineTo(this.X , this.Y);
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+
+        function minusTime(){
+            if(Start == false) return;
+            Time -= 0.1;
+            Time = Time.toFixed(1);
+            setTimeout(minusTime , 100);
+        }
+        
+        function Timer(){
+            if(Start == false) return;
+            ctx.font="40px Arial light";
+            ctx.strokeStyle ="black";
+            ctx.strokeText(Time + " Sec" , 1000 , 40);
+            ctx.font="40px Arial light";
+            ctx.strokeStyle ="black";
+            ctx.strokeText(stage + " Stage" , 40 , 40);
+            if(Time <= 0){
+                NextStage();
+            }
+            setTimeout(Timer , 0);
+        }
+
+        function NextStage(){
+            Start = false;
+            Cleared = true;
+            stage++;
+            posX = 100;
+            posY = 100;
+            Time = 7;
+            ctx.clearRect(0 , 0 , width , height);
+            ctx.font = "70px rnalgun gothic";
+            ctx.strokeText("      Clear!" , nanugi , 200);
+            ctx.font = "30px rnalgun gothic";
+            ctx.strokeText("Press space to go next Stage" , nanugi , 270);
+        }
+
+        function draw(c){
+            if(guns.length != stage * 2){
+                while(guns.length != stage * 2){
+                    if(getRandomInt(1 , 10) < 5){
+                        guns.push(new Gun(speed , getRandomInt(600 , 1200) , getRandomInt(100 , 580) , i));
+                    }else{
+                        guns.push(new Gun(speed , getRandomInt(0 , 1200) , getRandomInt(370 , 600) , i));
+                    }
+                    i++;
+                }
+            }
+            if(Start == false) return 0;
+            if(c >= colors.length) c = 0;
+            ctx.clearRect(0 , 0 , width , height);
+            ctx.lineWidth = 5;
+            ctx.lineCap ="round";
+            ctx.beginPath();
+            ctx.strokeStyle = colors[c];
+            ctx.moveTo(10 + posX , 10 + posY);
+            ctx.lineTo(10 + posX , 50 + posY);
+            ctx.lineTo(50 + posX , 50 + posY);
+            ctx.lineTo (50 + posX , 10 + posY);
+            ctx.lineTo(10 + posX , 10 + posY);
+            ctx.stroke();
+            ctx.closePath();
+            ctx.beginPath();
+            ctx.strokeStyle = "black";
+            ctx.moveTo(17 + posX , 25 + posY);
+            ctx.lineTo(17 + posX , 25 + posY);
+            ctx.moveTo(37 + posX , 25 + posY);
+            ctx.lineTo(37 + posX , 25 + posY);
+            c++;
+            ctx.stroke();
+            ctx.closePath();
+            cheekIsOutside();
+
+            guns.forEach(GunElement => {
+                GunElement.drawEnime();
+                GunElement.cheekGameOver();
+            });
+            
+            setTimeout(draw , 50 , c);
+        }
+
+        function draw_gameover(){
+            audio.play()
+            Start = false;
+            ctx.clearRect(0 , 0 , width , height);
+            ctx.font = "70px rnalgun gothic";
+            ctx.strokeText("Gameover!" , nanugi , 200);
+            ctx.font = "30px rnalgun gothic";
+            ctx.strokeText("Press space to restart" , nanugi , 270);
+            guns.forEach(GunElement => {
+                GunElement.restart();
+            });
+        }
+
+        draw(0);
+        Timer();
+        minusTime();
+
+        function cheekIsOutside(){
+            if(posX < 0) posX = speed;
+            if(posX > 1180) posX = 1180 - speed;
+            if(posY < 0) posY = speed;
+            if(posY > 580) posY = 580 - speed;
+        }
+
+        function keypress(){
+            const keyCode = event.keyCode;
+            console.log(keyCode);
+            if(keyCode == 97 || keyCode == 12609){
+                if(Start == false) return 0;
+                posX -= speed + addPlayer;
+                console.log("a")
+            }
+            if(keyCode == 115 || keyCode == 12596){
+                if(Start == false) return 0;
+                posY += speed + addPlayer;
+                console.log("s")
+            }
+
+            if(keyCode == 100 || keyCode == 12615){
+                if(Start == false) return 0;
+                posX += speed + addPlayer;
+                console.log("d");
+            }
+
+            if(keyCode == 119 || keyCode == 12616){
+                if(Start == false) return 0;
+                posY -= speed + addPlayer;
+                console.log("w");
+            }
+
+            if(keyCode == 32){
+                if(Start == true) return 0;
+                if(Cleared){
+                    Start = true;
+                    posX = 100;
+                    posY = 100;
+                    speed = 10;
+                    addPlayer = 10;
+                    Time = 7;
+                    draw(0);
+                    Timer();
+                    minusTime();
+                    guns.forEach(GunElement => {
+                        GunElement.restart();
+                    });
+                }else{
+                    posX = 100;
+                    posY = 100;
+                    speed = 10;
+                    addPlayer = 10;
+                    Start = true;
+                    Time = 7;
+                    draw(0);
+                    Timer();
+                    minusTime();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
