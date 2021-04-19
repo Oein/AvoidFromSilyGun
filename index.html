@@ -21,18 +21,35 @@
     <h3>멍청한 유도탄 피하기!!</h3><p></p>
     w , a , s , d키로 이동합니다. Space키를 눌러 다음 스테이지로 가거나 다시 시작을 합니다.<p></p>
     <canvas id="can" width="1220px" height="620px"></canvas>
+    <table>
+        <tr>
+            <td>&nbsp;</td>
+            <td><button id="up">↑</button></td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td><button id="left">←</button></td>
+            <td>&nbsp;</td>
+            <td><button id="right">→</button></td>
+            <td><button id="space">Space</button></td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td><button id="down">↓</button></td>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
 
     <script>
-        const colors = ["red",  "orange" , "yellow" , "green" , "blue" , "black"];
-        const canvasE = document.getElementById("can");
-        const ctx = canvasE.getContext("2d");
-        const width = canvasE.width;
-        const height = canvasE.height;
-        const nanugi = width / 2 - width / 4 + width / 8 - width / 16 + width / 32 - width / 64 + width / 128;
-
+        let colors = ["red",  "orange" , "yellow" , "green" , "blue" , "black"];
+        let canvasE = document.getElementById("can");
+        let ctx = canvasE.getContext("2d");
+        let width = canvasE.width;
+        let height = canvasE.height;
+        let nanugi = width / 2 - width / 4 + width / 8 - width / 16 + width / 32 - width / 64 + width / 128;
         let i = 0;
-        let posX = 100;
-        let posY = 100;
+        let posX = 510;
+        let posY = 210;
         let speed = 10;
         let addPlayer = 10;
         let Start = true;
@@ -40,11 +57,81 @@
         let guns = Array();
         let Time = 7;
         let Cleared = false;
-        var audio = document.getElementById("over");
-        audio.load()
+        let audio = document.getElementById("over");
+        let upKey = 0;
+        let downKey = 0;
+        let leftKey = 0;
+        let rightKey = 0;
+        let spaceKey = 0;
+
+        draw(0);
+        Timer();
+        minusTime();
+        buttonInput();
+        audio.load();
 
         function getRandomInt(min, max) { 
             return Math.floor(Math.random() * (max - min + 1)) + min; 
+        }
+
+        document.getElementById("up").addEventListener('mousedown' ,function(event){
+            upKey = 1;
+        });
+
+        document.getElementById("down").addEventListener('mousedown' ,function(event){
+            downKey = 1;
+        });
+
+        document.getElementById("left").addEventListener('mousedown' ,function(event){
+            leftKey = 1;
+        });
+
+        document.getElementById("right").addEventListener('mousedown' ,function(event){
+            rightKey = 1;
+        });
+
+        document.getElementById("space").addEventListener('mousedown' ,function(event){
+            spaceKey = 1;
+        });
+
+        document.getElementById("up").addEventListener('mouseup' ,function(event){
+            upKey = 0;
+        });
+
+        document.getElementById("down").addEventListener('mouseup' ,function(event){
+            downKey = 0;
+        });
+
+        document.getElementById("left").addEventListener('mouseup' ,function(event){
+            leftKey = 0;
+        });
+
+        document.getElementById("right").addEventListener('mouseup' ,function(event){
+            rightKey = 0;
+        });
+
+        document.getElementById("space").addEventListener('mouseup' ,function(event){
+            spaceKey = 0;
+        });
+
+        function buttonInput(){
+            if(upKey == 1){
+                up();
+            }
+            if(downKey == 1){
+                down();
+            }
+            if(leftKey == 1){
+                left();
+            }
+            if(rightKey == 1){
+                right();
+            }
+            if(spaceKey == 1){
+                space();
+            }
+
+            setTimeout(buttonInput , 30);
         }
 
         class Gun{
@@ -138,8 +225,8 @@
             Start = false;
             Cleared = true;
             stage++;
-            posX = 100;
-            posY = 100;
+            posX = 510;
+            posY = 210;
             Time = 7;
             ctx.clearRect(0 , 0 , width , height);
             ctx.font = "70px rnalgun gothic";
@@ -151,10 +238,15 @@
         function draw(c){
             if(guns.length != stage * 2){
                 while(guns.length != stage * 2){
-                    if(getRandomInt(1 , 10) < 5){
-                        guns.push(new Gun(speed , getRandomInt(600 , 1200) , getRandomInt(100 , 580) , i));
+                    let xE = getRandomInt(10, 100);
+                    if(xE <= 25){
+                        guns.push(new Gun(speed , getRandomInt(850 , 1200) , getRandomInt(0 , 600) , i));
+                    }else if(xE <= 50){
+                        guns.push(new Gun(speed , getRandomInt(0 , 350) , getRandomInt(0 , 600) , i));
+                    }else if(xE <= 75){
+                        guns.push(new Gun(speed, getRandomInt(350 , 850) , getRandomInt(0 , 80) , i));
                     }else{
-                        guns.push(new Gun(speed , getRandomInt(0 , 1200) , getRandomInt(370 , 600) , i));
+                        guns.push(new Gun(speed, getRandomInt(350 , 850) , getRandomInt(520 , 600) , i));
                     }
                     i++;
                 }
@@ -205,10 +297,6 @@
             });
         }
 
-        draw(0);
-        Timer();
-        minusTime();
-
         function cheekIsOutside(){
             if(posX < 0) posX = speed;
             if(posX > 1180) posX = 1180 - speed;
@@ -216,58 +304,78 @@
             if(posY > 580) posY = 580 - speed;
         }
 
+        function left(){
+            if(Start == false) return 0;
+            posX -= speed + addPlayer;
+            console.log("a")
+        }
+        
+        function right(){
+            if(Start == false) return 0;
+            posX += speed + addPlayer;
+            console.log("d");
+        }
+
+        function up(){
+            if(Start == false) return 0;
+            posY -= speed + addPlayer;
+            console.log("w");
+        }
+
+        function down(){
+            if(Start == false) return 0;
+            posY += speed + addPlayer;
+            console.log("s")
+        }
+
+        function space(){
+            if(Start == true) return 0;
+            if(Cleared){
+                Start = true;
+                posX = 510;
+                posY = 210;
+                speed = 10;
+                addPlayer = 10;
+                Time = 7;
+                draw(0);
+                Timer();
+                minusTime();
+                guns.forEach(GunElement => {
+                    GunElement.restart();
+                });
+            }else{
+                posX = 510;
+                posY = 210;
+                speed = 10;
+                addPlayer = 10;
+                Start = true;
+                Time = 7;
+                draw(0);
+                Timer();
+                minusTime();
+            }
+        }
+
         function keypress(){
             const keyCode = event.keyCode;
             console.log(keyCode);
             if(keyCode == 97 || keyCode == 12609){
-                if(Start == false) return 0;
-                posX -= speed + addPlayer;
-                console.log("a")
+                left();
             }
             if(keyCode == 115 || keyCode == 12596){
-                if(Start == false) return 0;
-                posY += speed + addPlayer;
-                console.log("s")
+                down();
             }
 
             if(keyCode == 100 || keyCode == 12615){
-                if(Start == false) return 0;
-                posX += speed + addPlayer;
-                console.log("d");
+                right();
             }
 
             if(keyCode == 119 || keyCode == 12616){
-                if(Start == false) return 0;
-                posY -= speed + addPlayer;
-                console.log("w");
+                up();
             }
 
             if(keyCode == 32){
-                if(Start == true) return 0;
-                if(Cleared){
-                    Start = true;
-                    posX = 100;
-                    posY = 100;
-                    speed = 10;
-                    addPlayer = 10;
-                    Time = 7;
-                    draw(0);
-                    Timer();
-                    minusTime();
-                    guns.forEach(GunElement => {
-                        GunElement.restart();
-                    });
-                }else{
-                    posX = 100;
-                    posY = 100;
-                    speed = 10;
-                    addPlayer = 10;
-                    Start = true;
-                    Time = 7;
-                    draw(0);
-                    Timer();
-                    minusTime();
-                }
+                space();
             }
         }
     </script>
